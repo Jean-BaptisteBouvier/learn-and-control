@@ -9,17 +9,14 @@ by Anusha Nagabandi, Gregory Kahn, Ronald S. Fearing and Sergey Levine from UC B
 
 
 Project overview:
-First, we learn the dynamics of the system:
-    given a state s(t) and an action a(t), the neural net predicts the next state difference s(t+dt)-s(t).
+1. We learn the dynamics of the pendulum: given a state *s(t)* and an action *a(t)*, the neural net predicts the next state difference *s(t+dt)-s(t)*.
     
-Second, we use Model Predictive Control (MPC) to design expert stabilizing trajectories.
+2. We use Model Predictive Control (MPC) to design expert stabilizing trajectories.
 
-Third, we use these expert trajectories to learn a stabilizing policy:
-    given a state s(t), the neural net predicts the action to take a(t).
+3. We use these expert trajectories to learn a stabilizing policy: given a state *s(t)*, the neural net predicts the action to take *a(t)*.
     
-Fourth, we combine the policy and dynamics into a single neural network:
-    given a state s(t), it predicts the action to take a(t) and the resulting next state difference s(t+dt)-s(t).
+4. We combine the policy and dynamics into a single neural network: given a state *s(t)*, this network predicts the action to take *a(t)* and the resulting next state difference *s(t+dt)-s(t)*.
     
-Fifth, we compare the trajectories resulting from the different dynamics and policies.
+5. We compare the trajectories resulting from the different dynamics and policies.
 
-Sixth, we verify whether this combined system verifies Lipschitz and Lyapunov properties.   NOT IMPLEMENTED yet.
+6. We verify whether this combined system verifies Lipschitz and Lyapunov properties.   NOT IMPLEMENTED yet.
