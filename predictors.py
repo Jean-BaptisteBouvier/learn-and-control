@@ -2,11 +2,14 @@
 """
 Created on Thu Jan  5 13:51:45 2023
 
-@author: jeanb
+@author: Jean-Baptiste Bouvier
 
 Build predictors that take a state and decide which action to take and what the resulting state will be.
-Model-free learning........ Doesn't work
-Instead, build a combined NN that puts together dynamics_NN and policy_NN on top of each other into one single NN.
+The combined_NN puts together dynamics_NN and policy_NN on top of each other into one single NN.
+No training is performed on that combined_NN since both dynamics and policy are already trained.
+Such a combined NN is required for the Lipschitz and Lyapunov verifications.
+
+A basic model-free learning approach doesn't work, need more advanced TRPO or PPO algorithms, not implemented.
 """
 
 
@@ -17,105 +20,9 @@ from torch.utils.data import Dataset
 
 
 
-# Neural Network class for the predictor
-# Takes a state 's(t)' as input and its output is 
-# the next state difference 's(t+dt)-s(t)' after taking an action 'a(t)'
-class Predictor_NN(nn.Module):
-    def __init__(self, sys, num_hiddens = 64):
-        super().__init__()
-        
-        self.state_size = sys.state_size
-        self.action_size = sys.action_size
-        self.net = nn.Sequential(nn.Linear(self.state_size, num_hiddens), nn.ReLU(),
-                                 nn.LazyLinear(num_hiddens), nn.ReLU(),
-                                 nn.LazyLinear(num_hiddens), nn.ReLU(),
-                                 nn.LazyLinear(num_hiddens), nn.ReLU(),
-                                 nn.LazyLinear(self.state_size + self.action_size))    
-    
-    def num_params(self):
-        return sum(p.numel() for p in self.parameters())
-    
-    def forward(self, x):
-        return self.net(x)
-    
-    def take_step(self, s):
-        """Returns the next state difference and the action."""
-        with torch.no_grad():
-            return self.net(s) # data is not normalized
-        
-    def next_state_dif_action(self, s):
-        """Returns a pair (next state difference, action)."""
-        y = self.take_step(s)
-        return y[:self.state_size], y[self.state_size:] # returns a pair next state difference, action
 
-    def next_state_action(self, s):
-        """Returns a pair (next state, action)."""
-        y = self.take_step(s)
-        return y[:self.state_size] + s, y[self.state_size:] # returns a pair next state, action
-
-    def next_action(self, s):
-        """Returns the action."""
-        y = self.take_step(s)
-        return y[-self.action_size:]
-    
-    
-
-# Creates the data to train the NN controlled_pendulum
-def ctrl_data(policy, dynamics, N):
-    inputs = torch.zeros((N, dynamics.state_size))
-    labels = torch.zeros((N, dynamics.state_size + dynamics.action_size))
-    
-    for i in range(N):
-        inputs[i] = 0.2*torch.randn((1, dynamics.state_size)) # normal distribution of initial states
-        a = policy.action(inputs[i])
-        ds = dynamics.next_state_dif(inputs[i], a)
-        labels[i] = torch.cat((ds, a), dim=0)
-    
-    return inputs, labels
-
-
-
-# Dataset class for the training of the controlled pendulum consisting of states as inputs
-# and labels as next state difference + action 
-class Predictor_Dataset(Dataset):
-    def __init__(self, policy, dynamics, N):   
-        self.X, self.y = ctrl_data(policy, dynamics, N)
-        self.N = N
-       
-    def __len__(self):# number of data points
-        return self.N
-    
-    def __getitem__(self, idx):
-        return self.X[idx,:], self.y[idx,:]
-    
-    def add_data(self, inputs, labels):
-        self.X = torch.cat((self.X, inputs), dim=0)
-        self.y = torch.cat((self.y, labels), dim=0)
-        self.N += inputs.shape[0]
-
-################################# TO DO #######################################
-# Implement a better algorithm for the imitation model-free learning:
-# TRPO (Trust Region Policy Optimization)
-# or PPO (Proximal Policy Optimization)
-
-###############################################################################
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-### Builds the combined neural network of policy and dynamics
+### Builds the combined neural network of policy_NN and dynamics_NN
+### Exact copy of each networks to have them combined in one single entity. No training.
 class combined_NN(nn.Module):
     """Given the policy and dynamics NN, we combine them into one single NN
     Input: state           Output: next state dif, action
@@ -264,4 +171,128 @@ class combined_NN(nn.Module):
         """Returns the action."""
         y = self.take_step(s)
         return y[-self.action_size]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Neural Network class for the predictor
+# Takes a state 's(t)' as input and its output is 
+# the next state difference 's(t+dt)-s(t)' after taking an action 'a(t)'
+class Predictor_NN(nn.Module):
+    def __init__(self, sys, num_hiddens = 64):
+        super().__init__()
+        
+        self.state_size = sys.state_size
+        self.action_size = sys.action_size
+        self.net = nn.Sequential(nn.Linear(self.state_size, num_hiddens), nn.ReLU(),
+                                 nn.LazyLinear(num_hiddens), nn.ReLU(),
+                                 nn.LazyLinear(num_hiddens), nn.ReLU(),
+                                 nn.LazyLinear(num_hiddens), nn.ReLU(),
+                                 nn.LazyLinear(self.state_size + self.action_size))    
+    
+    def num_params(self):
+        return sum(p.numel() for p in self.parameters())
+    
+    def forward(self, x):
+        return self.net(x)
+    
+    def take_step(self, s):
+        """Returns the next state difference and the action."""
+        with torch.no_grad():
+            return self.net(s) # data is not normalized
+        
+    def next_state_dif_action(self, s):
+        """Returns a pair (next state difference, action)."""
+        y = self.take_step(s)
+        return y[:self.state_size], y[self.state_size:] # returns a pair next state difference, action
+
+    def next_state_action(self, s):
+        """Returns a pair (next state, action)."""
+        y = self.take_step(s)
+        return y[:self.state_size] + s, y[self.state_size:] # returns a pair next state, action
+
+    def next_action(self, s):
+        """Returns the action."""
+        y = self.take_step(s)
+        return y[-self.action_size:]
+    
+    
+
+# Creates the data to train the NN controlled_pendulum
+def ctrl_data(policy, dynamics, N):
+    inputs = torch.zeros((N, dynamics.state_size))
+    labels = torch.zeros((N, dynamics.state_size + dynamics.action_size))
+    
+    for i in range(N):
+        inputs[i] = 0.2*torch.randn((1, dynamics.state_size)) # normal distribution of initial states
+        a = policy.action(inputs[i])
+        ds = dynamics.next_state_dif(inputs[i], a)
+        labels[i] = torch.cat((ds, a), dim=0)
+    
+    return inputs, labels
+
+
+
+# Dataset class for the training of the controlled pendulum consisting of states as inputs
+# and labels as next state difference + action 
+class Predictor_Dataset(Dataset):
+    def __init__(self, policy, dynamics, N):   
+        self.X, self.y = ctrl_data(policy, dynamics, N)
+        self.N = N
+       
+    def __len__(self):# number of data points
+        return self.N
+    
+    def __getitem__(self, idx):
+        return self.X[idx,:], self.y[idx,:]
+    
+    def add_data(self, inputs, labels):
+        self.X = torch.cat((self.X, inputs), dim=0)
+        self.y = torch.cat((self.y, labels), dim=0)
+        self.N += inputs.shape[0]
+
+################################# TO DO #######################################
+# Implement a better algorithm for the imitation model-free learning:
+# TRPO (Trust Region Policy Optimization)
+# or PPO (Proximal Policy Optimization)
+
+###############################################################################
+
 
