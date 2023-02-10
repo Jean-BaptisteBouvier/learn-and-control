@@ -22,6 +22,17 @@ Project overview:
     
 4. We combine the policy and dynamics into a single neural network: given a state *s(t)*, this network predicts the action to take *a(t)* and the resulting next state difference *s(t+dt)-s(t)*.
     
-5. We compare the trajectories resulting from the different dynamics and policies.
+5. We compare the trajectories resulting from the different dynamics and policies. 
+| Label | Dynamics | Controller |
+| ----------- | ----------- | ---------- |
+| 'true' | true | linear controller |
+| 'closed' | learned | linear controller |
+| 'mpc' | learned | MPC |
+| 'combined' | learned | learned policy |
+
+    ![Angle of the pendulum](Plots/theta.png "Angle of the pendulum")
+    ![Angular velocity of the pendulum](Plots/theta_dot.png "Angular velocity of the pendulum")
+    ![Torque applied to the pendulum](Plots/torque.png "Torque applied to the pendulum")
+
 
 6. We verify whether this combined system verifies Lipschitz and Lyapunov properties.   NOT IMPLEMENTED yet.
