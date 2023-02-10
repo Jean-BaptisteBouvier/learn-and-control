@@ -186,7 +186,7 @@ print("\nLearning a stabilizing policy\n")
 
 ### Generating the training dataset and policy model
 policy_data = Policy_Dataset(pendulum, expert_dataset)
-policy = Policy_NN(pendulum, num_hiddens=32)
+policy = Policy_NN(pendulum, num_hiddens=64)
 
 ### Training the policy
 training_loss = policy_training(policy_data, policy, epochs=200, lr=1e-3, batch_size = 2**6)
