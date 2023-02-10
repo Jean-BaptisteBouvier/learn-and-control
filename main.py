@@ -4,7 +4,7 @@ Created on Tue Oct  4 15:04:07 2022
 
 @author: Jean-Baptiste Bouvier
 
-Main code to study inverted pendulum dynamics.
+Main code to study the inverted pendulum dynamics.
 
 This code is inspired by the IEEE paper:
 "Neural Network Dynamics for Model-Based Deep Reinforcement Learning with Model-Free Fine-Tuning"
@@ -194,15 +194,15 @@ relative_error(policy, policy_data, 'policy data')
 print(f"Model has a total of {policy.num_params():0} parameters, ratio of {policy_data.N/policy.num_params():.1f} datapoints to parameters.")
 
 ### Performing on-policy rollouts
-N_traj = 2**3 # number of rollouts
-N_pred = 2**7 # number of steps per rollouts
+N_traj = 2**2 # number of rollouts
+N_pred = 2**8 # number of steps per rollouts
 states = on_policy_rollout(pendulum, dynamics, policy, N_pred, N_traj)
 
 ### Querying the expert MPC to get the best actions to take at the visited states
 inputs, labels = MPC_query(pendulum, dynamics, states, N_traj_shooting, H, N_rep, P)
 policy_data.add_data(inputs, labels)
 ### Policy retraining
-training_loss = policy_training(policy_data, policy, epochs=100, lr=1e-4, batch_size = round(policy_data.N/2**4))
+training_loss = policy_training(policy_data, policy, epochs=200, lr=1e-4, batch_size = round(policy_data.N/2**4))
 
 
 ### Adding datapoints close to the origin to improve convergence
@@ -244,35 +244,23 @@ trajectories = [] # list to store the different trajectories
 traj_labels = [] # list to store their labels
 controls = [] # list to store the control inputs on each trajectories
 
-### u=-Kx and true dynamics
-true_traj, true_controls = true_trajectory(pendulum, x0, K, N_pred)
-trajectories.append(true_traj)
-controls.append(true_controls)
-traj_labels.append('true')
-
-### true_controls and NN_dynamics
-open_loop_traj = traj_open_loop(x0, true_controls, dynamics, N_pred)
-trajectories.append(open_loop_traj)
-controls.append(true_controls)
-traj_labels.append('open')
-
-### u=-Kx and NN_dynamics
-closed_loop_traj, closed_loop_controls = traj_closed_loop(x0, K, dynamics, N_pred)
-trajectories.append(closed_loop_traj)
-controls.append(closed_loop_controls)
-traj_labels.append('closed')
-
 ### MPC controls and NN_dynamics
 mpc_traj, mpc_controls = dynamics_MPC_traj(pendulum, x0, dynamics, N_pred, N_traj_shooting, H, N_rep, P)
 trajectories.append(mpc_traj)
 controls.append(mpc_controls)
 traj_labels.append('mpc')
 
-### policy controls and NN_dynamics
-policy_traj, policy_controls = dynamics_policy_traj(dynamics, policy, x0, N_pred)
-trajectories.append(policy_traj)
-controls.append(policy_controls)
-traj_labels.append('policy')
+### u=-Kx and true dynamics
+true_traj, true_controls = true_trajectory(pendulum, x0, K, N_pred)
+trajectories.append(true_traj)
+controls.append(true_controls)
+traj_labels.append('true')
+
+### u=-Kx and NN_dynamics
+closed_loop_traj, closed_loop_controls = traj_closed_loop(x0, K, dynamics, N_pred)
+trajectories.append(closed_loop_traj)
+controls.append(closed_loop_controls)
+traj_labels.append('closed')
 
 ### combined policy and dynamics
 comb_traj, comb_controls = predictor_traj(combined, x0, N_pred)
