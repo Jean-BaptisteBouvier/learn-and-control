@@ -24,12 +24,12 @@ by Anusha Nagabandi, Gregory Kahn, Ronald S. Fearing and Sergey Levine from UC B
     
 5. We compare the trajectories resulting from the different dynamics and policies. 
 
-| Label | Dynamics | Controller |
-| ----------- | ----------- | ---------- |
-| 'true' | true | linear controller |
-| 'closed' | learned | linear controller |
-| 'mpc' | learned | MPC |
-| 'combined' | learned | learned policy |
+    | Label | Dynamics | Controller |
+    | ----------- | ----------- | ---------- |
+    | 'true' | true | linear controller |
+    | 'closed' | learned | linear controller |
+    | 'mpc' | learned | MPC |
+    | 'combined' | learned | learned policy |
 
     ![Angle of the pendulum](Plots/theta.png "Angle of the pendulum")
     ![Angular velocity of the pendulum](Plots/theta_dot.png "Angular velocity of the pendulum")
