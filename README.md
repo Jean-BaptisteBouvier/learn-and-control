@@ -7,8 +7,8 @@ This code is inspired by the IEEE paper:
 ["Neural Network Dynamics for Model-Based Deep Reinforcement Learning with Model-Free Fine-Tuning"](https://ieeexplore.ieee.org/abstract/document/8463189)
 by Anusha Nagabandi, Gregory Kahn, Ronald S. Fearing and Sergey Levine from UC Berkeley.
 
-
-Project overview:
+---
+# Project overview:
 1. We learn the dynamics of the pendulum: given a state *s(t)* and an action *a(t)*, the neural net predicts the next state difference *s(t+dt)-s(t)*.
     ![Dynamics training loss](Plots/Dynamics_training_loss.png "Training loss for the dynamics")
     
@@ -23,6 +23,7 @@ Project overview:
 4. We combine the policy and dynamics into a single neural network: given a state *s(t)*, this network predicts the action to take *a(t)* and the resulting next state difference *s(t+dt)-s(t)*.
     
 5. We compare the trajectories resulting from the different dynamics and policies. 
+
 | Label | Dynamics | Controller |
 | ----------- | ----------- | ---------- |
 | 'true' | true | linear controller |
