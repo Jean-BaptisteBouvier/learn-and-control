@@ -1,4 +1,5 @@
-%%%% Inverted pendulum
+%%%% Inverted pendulum dynamics
+% MATLAB code to compute the norm bound on the trajectory distance
 
 g = 9.81;
 A = [0, 1; 3*g/2, 0];
